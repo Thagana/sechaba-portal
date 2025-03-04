@@ -1,0 +1,19 @@
+<div class="container">
+  <form [formGroup]="form" class="form" (ngSubmit)="submit()">
+    <mat-form-field appearance="outline">
+      <mat-label>Email</mat-label>
+      <input matInput placeholder="janendoe@sechaba.com" type="email" formControlName="email">
+    </mat-form-field>
+    <button mat-flat-button>
+      @if (loading) {
+        <span>
+          Loading ...
+        </span>
+      } @else {
+        <span>
+        Login
+        </span>
+      }
+    </button>
+  </form>
+</div>
