@@ -1,5 +1,7 @@
 import { Component } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import {RouterOutlet} from '@angular/router';
+import {SupabaseService} from './shared/services/supabase.service';
+import {Session} from '@supabase/supabase-js'
 
 @Component({
   selector: 'app-root',
@@ -8,5 +10,5 @@ import { RouterOutlet } from '@angular/router';
   styleUrl: './app.component.scss'
 })
 export class AppComponent {
-  title = 'sechaba-admin';
+  public title = 'sechaba-admin';
 }
