@@ -3,19 +3,14 @@ import {
   AuthSession,
   createClient,
   SupabaseClient,
-  User,
+  AuthUser
 } from '@supabase/supabase-js'
 import { environment } from '../../../environments/environment';
 import { BehaviorSubject, Observable } from 'rxjs';
 
-export interface Profile {
-  id?: string
-  username: string
-  website: string
-  avatar_url: string
-}
+type User = AuthUser;
 
-export type SupabaseUser = User | boolean | null | undefined;
+export type SupabaseUser = User  | boolean | null | undefined;
 
 @Injectable({
   providedIn: 'root',
@@ -63,14 +58,10 @@ export class SupabaseService {
   // Set up auth state change listener
   private setupAuthChangesListener() {
     this.supabase.auth.onAuthStateChange((event, session) => {
-      console.log('SUPABASE AUTH CHANGED:', event);
-
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('SET USER:', session?.user);
         this._session = session;
         this.currentUser.next(session?.user);
       } else if (event === 'SIGNED_OUT') {
-        console.log('USER SIGNED OUT');
         this._session = null;
         this.currentUser.next(false);
       }

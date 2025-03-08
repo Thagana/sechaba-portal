@@ -22,6 +22,14 @@ export const routes: Routes = [
       {
         path: 'users',
         loadComponent: () => import('../app/pages/dashboard/users/users.component').then((m) => m.UsersComponent)
+      },
+      {
+        path: 'villages',
+        loadComponent: () => import('../app/pages/dashboard/villages/villages.component').then((m) => m.VillagesComponent),
+      },
+      {
+        path: 'villages/map-view/:id',
+        loadComponent: () => import("../app/pages/dashboard/villages/village-map/village-map.component").then((m) => m.VillageMapComponent)
       }
     ]
   },
