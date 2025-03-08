@@ -28,14 +28,59 @@ export class SupabaseService {
   _session: AuthSession | null = null
 
   constructor() {
-    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey)
+    this.supabase = createClient(environment.supabaseUrl, environment.supabaseKey);
+
+    // Initialize the currentUser with the session user on service creation
+    this.initializeUser();
+
+    // Set up auth changes listener
+    this.setupAuthChangesListener();
+  }
+
+  // Initialize user from current session
+  private async initializeUser() {
+    try {
+      const { data, error } = await this.supabase.auth.getSession();
+      if (error) {
+        console.error('Error getting session:', error);
+        this.currentUser.next(false);
+        return;
+      }
+
+      this._session = data.session;
+
+      if (data.session?.user) {
+        console.log('Initial user found:', data.session.user);
+        this.currentUser.next(data.session.user);
+      } else {
+        console.log('No initial user found');
+        this.currentUser.next(false);
+      }
+    } catch (error) {
+      console.error('Failed to initialize user:', error);
+      this.currentUser.next(false);
+    }
+  }
+
+  // Set up auth state change listener
+  private setupAuthChangesListener() {
+    this.supabase.auth.onAuthStateChange((event, session) => {
+      console.log('SUPABASE AUTH CHANGED:', event);
+
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        console.log('SET USER:', session?.user);
+        this._session = session;
+        this.currentUser.next(session?.user);
+      } else if (event === 'SIGNED_OUT') {
+        console.log('USER SIGNED OUT');
+        this._session = null;
+        this.currentUser.next(false);
+      }
+    });
   }
 
   get session() {
-    this.supabase.auth.getSession().then(({ data }) => {
-      this._session = data.session
-    })
-    return this._session
+    return this._session;
   }
 
   profile(user: User) {
@@ -43,30 +88,19 @@ export class SupabaseService {
       .from('profiles')
       .select(`username, website, avatar_url`)
       .eq('id', user.id)
-      .single()
+      .single();
   }
 
   authChanges(callback: (event: AuthChangeEvent, session: Session | null) => void) {
-    return this.supabase.auth.onAuthStateChange((event, sess) => {
-      console.log('SUPABAS AUTH CHANGED: ', event);
-      console.log('SUPABAS AUTH CHANGED sess: ', sess);
-
-      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
-        console.log('SET USER');
-
-        this.currentUser.next(sess?.user);
-      } else {
-        this.currentUser.next(false);
-      }
-    })
+    return this.supabase.auth.onAuthStateChange(callback);
   }
 
   signIn(email: string) {
-    return this.supabase.auth.signInWithOtp({ email })
+    return this.supabase.auth.signInWithOtp({ email });
   }
 
   signOut() {
-    return this.supabase.auth.signOut()
+    return this.supabase.auth.signOut();
   }
 
   getCurrentUser(): Observable<SupabaseUser> {
@@ -74,7 +108,7 @@ export class SupabaseService {
   }
 
   getCurrentUserId(): string | null {
-    if (this.currentUser.value) {
+    if (this.currentUser.value && typeof this.currentUser.value !== 'boolean') {
       return (this.currentUser.value as User).id;
     } else {
       return null;
@@ -82,7 +116,71 @@ export class SupabaseService {
   }
 
   async setSession(access_token: any, refresh_token: any) {
-    return this.supabase.auth.setSession({ access_token, refresh_token });
+    try {
+      const { data, error } = await this.supabase.auth.setSession({
+        access_token,
+        refresh_token
+      });
+
+      if (error) {
+        console.error('Error setting session:', error);
+        return { data, error };
+      }
+
+      if (data.session?.user) {
+        console.log('Session set with user:', data.session.user);
+        this._session = data.session;
+        this.currentUser.next(data.session.user);
+      }
+
+      return { data, error };
+    } catch (error) {
+      console.error('Failed to set session:', error);
+      return { data: null, error };
+    }
+  }
+  async getAndUpdateSession(): Promise<any> {
+    try {
+      console.log('SupabaseService.getAndUpdateSession called');
+      const { data, error } = await this.supabase.auth.getSession();
+
+      if (error) {
+        console.error('Error getting session:', error);
+        this.currentUser.next(false);
+        return { success: false, error };
+      }
+
+      this._session = data.session;
+
+      if (data.session?.user) {
+        console.log('Session contains user:', data.session.user);
+        // Dump important user properties for debugging
+        const { id, email, app_metadata, user_metadata } = data.session.user;
+        console.log('User details:', { id, email, app_metadata, user_metadata });
+
+        this.currentUser.next(data.session.user);
+        return { success: true, user: data.session.user };
+      } else {
+        console.log('No user in session');
+        this.currentUser.next(false);
+        return { success: false, reason: 'no-user-in-session' };
+      }
+    } catch (error) {
+      console.error('Failed to get and update session:', error);
+      this.currentUser.next(false);
+      return { success: false, error };
+    }
   }
 
+// Also add this method to check if the user is really logged in
+  isLoggedIn(): boolean {
+    const user = this.currentUser.value;
+    console.log('isLoggedIn check, currentUser is:', user);
+
+    if (!user) return false;
+    if (!Boolean(user)) return false;
+    if (typeof user === 'object' && 'id' in user) return true;
+
+    return false;
+  }
 }
