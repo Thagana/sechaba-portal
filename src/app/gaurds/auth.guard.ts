@@ -1,10 +1,9 @@
 import { SupabaseService } from '../shared/services/supabase.service'
 import { Injectable } from '@angular/core'
-import { ActivatedRouteSnapshot, CanActivate, Router, UrlTree } from '@angular/router'
+import { CanActivate, Router, UrlTree } from '@angular/router'
 import { Observable, of } from 'rxjs'
 import { map, take, catchError, tap, switchMap } from 'rxjs/operators'
 import { MatSnackBar } from '@angular/material/snack-bar';
-import { User } from '@supabase/supabase-js';
 
 @Injectable({
   providedIn: 'root',
@@ -16,7 +15,7 @@ export class AuthGuard implements CanActivate {
     private snackbar: MatSnackBar,
   ) {}
 
-  canActivate(route: ActivatedRouteSnapshot): Observable<boolean | UrlTree> {
+  canActivate(): Observable<boolean | UrlTree> {
 
     // First, force a session check before proceeding
     return this.checkAndRefreshSession().pipe(
@@ -35,7 +34,7 @@ export class AuthGuard implements CanActivate {
           return this.router.createUrlTree(['/auth/login']);
         }
 
-        if (!Boolean(user)) {
+        if (!user) {
           this.showLoginMessage();
           return this.router.createUrlTree(['/auth/login']);
         }
@@ -53,10 +52,11 @@ export class AuthGuard implements CanActivate {
         this.showLoginMessage();
         return this.router.createUrlTree(['/auth/login']);
       }),
-      catchError((error) => {
+      catchError((error: unknown) => {
         this.snackbar.open('Authentication error occurred', 'Close', {
           duration: 3000
         });
+        console.error(error)
         return of(this.router.createUrlTree(['/auth/login']));
       })
     );
@@ -69,7 +69,7 @@ export class AuthGuard implements CanActivate {
   }
 
   // Force a session check/refresh
-  private checkAndRefreshSession(): Observable<any> {
+  private checkAndRefreshSession(): Observable<unknown> {
     // This is a workaround to ensure we have the most current session
     return new Observable(observer => {
       console.log('Checking/refreshing session...');

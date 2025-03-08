@@ -1,7 +1,6 @@
-import { Component, OnInit } from '@angular/core';
+import { Component } from '@angular/core';
 import {LayoutComponent} from '../../layout/layout.component';
 import {RouterOutlet} from '@angular/router';
-import {SupabaseService} from '../../shared/services/supabase.service';
 
 @Component({
   selector: 'app-dashboard',

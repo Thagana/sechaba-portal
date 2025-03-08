@@ -1,9 +1,7 @@
 import { Injectable } from '@angular/core'
 import {
-  AuthChangeEvent,
   AuthSession,
   createClient,
-  Session,
   SupabaseClient,
   User,
 } from '@supabase/supabase-js'
@@ -91,9 +89,6 @@ export class SupabaseService {
       .single();
   }
 
-  authChanges(callback: (event: AuthChangeEvent, session: Session | null) => void) {
-    return this.supabase.auth.onAuthStateChange(callback);
-  }
 
   signIn(email: string) {
     return this.supabase.auth.signInWithOtp({ email });
@@ -107,15 +102,7 @@ export class SupabaseService {
     return this.currentUser.asObservable();
   }
 
-  getCurrentUserId(): string | null {
-    if (this.currentUser.value && typeof this.currentUser.value !== 'boolean') {
-      return (this.currentUser.value as User).id;
-    } else {
-      return null;
-    }
-  }
-
-  async setSession(access_token: any, refresh_token: any) {
+  async setSession(access_token: string, refresh_token: string) {
     try {
       const { data, error } = await this.supabase.auth.setSession({
         access_token,
@@ -178,9 +165,7 @@ export class SupabaseService {
     console.log('isLoggedIn check, currentUser is:', user);
 
     if (!user) return false;
-    if (!Boolean(user)) return false;
-    if (typeof user === 'object' && 'id' in user) return true;
-
-    return false;
+    if (!user) return false;
+    return typeof user === 'object' && 'id' in user;
   }
 }
