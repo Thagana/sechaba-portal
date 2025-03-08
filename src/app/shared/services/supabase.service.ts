@@ -126,7 +126,7 @@ export class SupabaseService {
       return { data: null, error };
     }
   }
-  async getAndUpdateSession(): Promise<any> {
+  async getAndUpdateSession() {
     try {
       console.log('SupabaseService.getAndUpdateSession called');
       const { data, error } = await this.supabase.auth.getSession();
