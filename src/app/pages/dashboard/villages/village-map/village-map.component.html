@@ -1,0 +1,12 @@
+<mat-card appearance="outlined">
+  <mat-card-content>
+      <div class="map-container">
+        <google-map [center]="center" [zoom]="zoom" [options]="options">
+          @for(marker of markers; track marker) {
+            <map-marker [position]="marker"></map-marker>
+          }
+          <map-polyline [options]="polylineOptions"></map-polyline>
+        </google-map>
+      </div>
+  </mat-card-content>
+</mat-card>
