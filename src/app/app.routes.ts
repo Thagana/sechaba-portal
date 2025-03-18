@@ -24,6 +24,14 @@ export const routes: Routes = [
         loadComponent: () => import('../app/pages/dashboard/users/users.component').then((m) => m.UsersComponent)
       },
       {
+        path: 'announcements',
+        loadComponent: () => import('../app/pages/dashboard/anouncements/anouncements.component').then((m) => m.AnouncementsComponent)
+      },
+      {
+        path: 'announcements/create',
+        loadComponent: () => import('../app/pages/dashboard/anouncements/announcement-create/announcement-create.component').then((m) => m.AnnouncementCreateComponent)
+      },
+      {
         path: 'villages',
         loadComponent: () => import('../app/pages/dashboard/villages/villages.component').then((m) => m.VillagesComponent),
       },
