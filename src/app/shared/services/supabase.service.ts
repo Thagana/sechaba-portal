@@ -83,7 +83,8 @@ export class SupabaseService {
 
   signIn(email: string) {
     return this.supabase.auth.signInWithOtp({ email, options: {
-      emailRedirectTo: environment.redirectUrl
+      emailRedirectTo: environment.redirectUrl,
+      shouldCreateUser: false
     } });
   }
 
